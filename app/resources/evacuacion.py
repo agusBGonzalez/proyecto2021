@@ -267,3 +267,4 @@ def modificar_recorrido(id):
         configuracion=conf,
         evacuacion=evacuacion,
     )
+
