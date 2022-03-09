@@ -1,0 +1,237 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+{% endblock %}
+
+{% block title %}
+Zonas de Inundacion
+{% endblock %}
+
+
+{% block navbar %}
+
+<div class="d-flex">
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i
+                        class="bi bi-person-lines-fill"></i> Perfil</button>
+            <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="bi bi-house-fill"></i> Home</a></li>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                Configuración</a></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i
+                        class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i
+                        class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i
+                        class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="card col mt-5">
+        <div class="card-header d-flex">
+            <div class="col-8">
+                <h2 class="fw-bolder">Zonas de Inundación</h2>
+            </div>
+            <div class="col-4 text-end">
+                <a class="btn btn-success m-1" href="{{ url_for('zona_crear') }}">
+                    <i class="bi bi-plus-lg"> Zona</i>
+                </a>
+
+            </div>
+        </div>
+        <div class="card-body">
+
+            <form action="{{ url_for('zonas_index') }}" class="mb-2">
+                <div class="input-group">
+                    <select class="form-select form-sm" id="inputGroupSelect01" name="select">
+                        {% if select %}
+                        <option selected>{{ select }}</option>
+                        {% endif %}
+                        <option value="Publicado">Publicado</option>
+                        <option value="Despublicado">Despublicado</option>
+                    </select>
+                    <input type="text" class="form-control" placeholder="Buscar zona de inundacion" name="search"
+                        value="{{ search }}">
+                    <button type="submit" class="btn btn-background"><i class="bi bi-search"></i></button>
+                    <a class="btn btn-info" href="{{ url_for('zonas_index') }}"><i class="bi bi-arrow-repeat"></i></a>
+                </div>
+            </form>
+
+            <form action="{{ url_for('zonas_import') }}" enctype="multipart/form-data" class="mb-2" method="post">
+                <div class="input-group">
+                    <input type="file" class="form-control" name="archivo_csv">
+                    <button type="submit" class="btn btn-background">Importar</button>
+                </div>
+            </form>
+
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="col-10">Nombre</th>
+                        <th class="col-2 text-end">Operaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for zona in zonas.items %}
+                    <tr>
+                        <td> {{zona.nombre}} </td>
+                        <td class="text-end">
+                            <a type="button" class="btn btn-background me-1 mb-1"
+                                href="{{ url_for('zona_show', id=zona.id) }}"><i class="bi bi-eye-fill"></i></a>
+                            <a class="btn btn-warning me-1 mb-1"
+                                href="{{ url_for('zona_modificar', id=zona.id) }}"><i
+                                    class="bi bi-pencil-fill"></i></a>
+                            {% if check_permission(session, permission="zona_inundacion_destroy") %}
+                            <a id="btn-deletezona" type="button" class="btn btn-danger me-1 mb-1"
+                                href="{{ url_for('zonas_delete', id=zona.id) }}"><i class="bi bi-trash-fill"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-center">
+            <ul class="pagination">
+                {% for page_num in zonas.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                {% if zonas.page == page_num %}
+                <li class="page-item disabled"><a class="page-link"
+                        href="{{ url_for('zonas_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% else %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('zonas_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% endif %}
+                {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+<script>
+    const btnDelete = document.querySelectorAll('#btn-deletezona');
+    if (btnDelete) {
+        const btnArray = Array.from(btnDelete);
+        btnArray.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                if (!confirm('¿Esta usted seguro de querer eliminar esta zona de inundacion?')) {
+                    e.preventDefault();
+                }
+            });
+        })
+    }
+</script>
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver el perfil</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="permisosModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Permisos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los permisos</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los roles</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        var min = 3;
+        var container = $("#coords");
+        var add = $("#btn-add");
+
+        var x = 3;
+        $(add).click(function (e) {
+            e.preventDefault();
+            x++;
+            $(container).append(`<div class="input-group mb-3"><span class="input-group-text bg-background" id="latitud${x}"><b>Lat.</b></span><input type="text" name="latitud${x}" class="form-control input-forms" aria-label="Latitud${x}" aria-describedby="latitud${x}" required><span class="input-group-text bg-background" id="longitud${x}"><b>Long.</b></span><input type="text" name="longitud${x}" class="form-control input-forms" aria-label="Longitud${x}" aria-describedby="longitud${x}" required><button type="button" id="btn-del" class="btn btn-danger">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button></div>`);
+        });
+
+        $(container).on("click", "#btn-del", function (e) {
+            e.preventDefault();
+            if (x > min) {
+                $(this).parent('div').remove();
+                x--;
+            }
+        })
+    });
+</script>
+{% endblock %}

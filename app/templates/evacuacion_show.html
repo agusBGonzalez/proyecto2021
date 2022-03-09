@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block title %}
+evacuacion: {{evacuacion.nombre}}
+{% endblock %}
+
+{% block navbar %}
+<div class="d-flex">
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button"><i class="bi bi-person-lines-fill"></i> Perfil</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="bi bi-house-fill"></i> Home</a></li>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                Configuracion</a></li>
+            <li><button class="dropdown-item" type="button"><i class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button"><i class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de evacuacion </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundacion</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+                <li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesion</a></li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card col mt-5 bg-onlyblacksparent">
+        <div class="card-body">
+            <div class="row d-flex flex-wrap">
+                <div class="col-lg-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <a type="button" class="btn btn-background" href="{{ url_for('evacuacion_index') }}"><i
+                                    class="bi bi-arrow-left"></i></a>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Nombre:</strong> {{evacuacion.nombre}}</p>
+                            <p><strong>Descripción:</strong> {{evacuacion.descripcion}}</p>
+                            {% if evacuacion.estado %}
+                            <p><strong>Publicado:</strong> Si.</p>
+                            {% else %}
+                            <p><strong>Publicado:</strong> No.</p>
+                            {% endif %}
+                            <p><strong>Cantidad de Coordenadas:</strong> {{coords}}</p>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-background" data-bs-toggle="modal"
+                                data-bs-target="#verCoordenadas">Ver Coordenadas</button>
+
+                            <!--modal de visualizacion de coordenadas-->
+                            <div class="modal fade" id="verCoordenadas" tabindex="-1"
+                                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">Coordenadas
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% for coordenada in evacuacion.coordenadas %}
+                                            <p><strong>Coordenada:</strong>
+                                                {{coordenada.lat}},{{coordenada.long}}</p>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--fin del modal-->
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div id="map_recorrido" class="card-wyha"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<script>
+    console.log("antes del ajax")
+
+    $.ajax({ url: "/api/recorrido-evacuacion/{{evacuacion.id}}", method: "GET" }).then(function (data) {
+        console.log("entre al ajax")
+
+        let lat;
+        let long;
+        let coords = [];
+        let coordenadasDicc = data['atributos'].coordenadas;
+        coordenadasDicc.forEach(dato => {
+            let coordenadasElem = [];
+            coordenadasElem.push(parseFloat(dato.lat));
+            coordenadasElem.push(parseFloat(dato.long));
+            coords.push(coordenadasElem);
+            lat = dato.lat;
+            long = dato.long;
+        });
+        let map_recorrido = new L.map('map_recorrido').setView([parseFloat(lat), parseFloat(long)], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_recorrido);
+        var polyline = L.polyline(coords).addTo(map_recorrido);
+
+    });
+</script>
+
+{% endblock %}
+
+{% block modal %}
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+Error!
+{% endblock %}
+
+
+{% block navbar %}
+
+{% endblock %}
+
+
+{% block content %}
+<div class="content-card-home">
+    <div class="card border-dark bg-light text-center">
+        <h5 class="card-header">{{ error_name }}</h5>
+        <div class="card-body">
+            <p><b>Error!</b> {{ error_description }}</p>
+        </div>
+        <div class="card-footer">
+            <div class="d-grid gap-2">
+                <a class="btn btn-background" href="{{url_for('home')}}">Volver a casa!</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+
+{% endblock %}
+
+{% block modal %}
+
+{% endblock %}

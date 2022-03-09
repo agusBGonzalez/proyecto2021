@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+Denuncias
+{% endblock %}
+
+
+{% block navbar %}
+
+<div class="d-flex">
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i class="bi bi-person-lines-fill"></i> Perfil</button>
+            <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="bi bi-house-fill"></i> Home</a></li>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                Configuración</a></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundación</a></li>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="card col mt-5">
+        <div class="card-header d-flex">
+            <div class="col-8">
+                <h2 class="fw-bolder">Gestión de Denuncias</h2>
+            </div>
+            <div class="col-4 text-end">
+                <a class="btn btn-background" href="{{ url_for('mis_denuncias') }}">Mis Denuncias</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('denuncias_index') }}">
+                <div class="input-group">
+                    <select class="form-select form-sm" id="inputGroupSelect01" name="select">
+                        <option value="" disabled> Seleccionar Filtro de Denuncia</option>
+                        {% if select %}
+                        <option selected>{{ select }}</option>
+                        {% endif %}
+                        <option value="Titulo">Título</option>
+                        <option value="Estado">Estado</option>
+                        <option value="Fecha">Fecha</option>
+                    </select>
+                    <input type="text" class="form-control" placeholder="Buscar por Título, Estado, Fecha..."
+                        name="search" value="{{ search }}">
+                    <button type="submit" class="btn btn-background"><i class="bi bi-search"></i></button>
+                    <a class="btn btn-info" href="{{ url_for('denuncias_index') }}"><i
+                            class="bi bi-arrow-repeat"></i></a>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-3">Título</th>
+                            <th class="col-3">Estado</th>
+                            <th class="col-3">Asignado a...</th>
+                            <th class="col-3 text-end">Operaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for denuncia in denuncias.items %}
+                        <tr>
+                            <td> {{denuncia.titulo}} </td>
+                            <td> {{denuncia.estado}} </td>
+                            {% if denuncia.usuario == None %}
+                            <td> sin asignacion </td>
+                            {% else %}
+                            <td> {% for usuario in usuarios %}
+                                {% if usuario.id == denuncia.usuario_id %}
+                                {{usuario.firstname}}
+                                {{usuario.lastname}}
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            {% endif %}
+                            <td class="text-end">
+                                <a type="button" class="btn btn-background me-1 mb-1"
+                                href="{{ url_for('denuncia_show', id=denuncia.id) }}"><i
+                                    class="bi bi-eye-fill"></i></a>
+                                {% if denuncia.usuario_id == None %}
+                                <button type="button" class="btn btn-warning mb-1" data-bs-toggle="modal"
+                                    data-bs-target="#asignarusuarioModal{{denuncia.id}}">Asignar usuario</button>
+                                {% endif %}
+                                {% if denuncia.estado == "En curso" and denuncia.usuario_id == session["user"].id %}
+                                <button type="button" class="btn btn-warning mb-1" data-bs-toggle="modal"
+                                    data-bs-target="#seguimientodenunciaModal{{denuncia.id}}"><i class="bi bi-chat-square-dots"></i></button>
+                                {% endif %}
+                                {% if check_permission(session, permission="denuncias_destroy") %}
+                                <a id="btn-eliminardenuncia" type="button" class="btn btn-danger mb-1"
+                                    href="{{url_for('denuncia_delete', id=denuncia.id)}}">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                                {% endif %}
+                                <!-- modal seguimiento -->
+                                <div class="modal fade" id="seguimientodenunciaModal{{denuncia.id}}" tabindex="-1"
+                                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLabel">Seguimiento de la
+                                                    Denuncia <b>{{denuncia.titulo}}</b> </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <form action=" {{ url_for('denuncia_seguimiento', id=denuncia.id) }}" class="text-start" method="POST">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text bg-background"><b>Comentario</b></span>
+                                                        <textarea class="form-control input-forms" name="comentario" value="{{denuncia.comentario}}" id="comentario" rows="1"></textarea>
+                                                    </div>
+                                                    <h4>¿Se Solucionó la Denuncia?</h4>
+                                                    <div class="imput-group mb-3">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="respuesta"
+                                                                id="inlineRadio1" value="1">
+                                                            <label class="form-check-label"
+                                                                for="inlineRadio1">Sí</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="respuesta"
+                                                                id="inlineRadio2" value="">
+                                                            <label class="form-check-label"
+                                                                for="inlineRadio2">No</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-grid gap-2">
+                                                        <button type="submit" class="btn btn-background">Realizar Seguimiento</button>
+                                                    </div>     
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- modal para asignar un usuario a una denuncia -->
+                                <div class="modal fade" id="asignarusuarioModal{{denuncia.id}}" tabindex="-1"
+                                    aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLabel">Asignar Usuario
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{ url_for('denuncia_asignar_usuario',id=denuncia.id) }}"
+                                                    class="text-start" method="POST">
+                                                    <!-- Token CSRF-->
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                                    <div class="input-group mb-3">
+                                                        <span
+                                                            class="input-group-text bg-background"><b>Usuarios</b></span>
+                                                        <select class="form-select input-forms text-end"
+                                                            name="idusuario">
+                                                            {% for usuario in usuarios %}
+                                                            <option value="{{usuario.id}}">
+                                                                {{usuario.username}}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="d-grid gap-2">
+                                                        <button type="submit"
+                                                            class="btn btn-background">Aceptar</button>
+                                                        <button type="button" class="btn btn-danger"
+                                                            data-bs-dismiss="modal">Cancelar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-center">
+            <ul class="pagination">
+                {% for page_num in denuncias.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                {% if denuncias.page == page_num %}
+                <li class="page-item disabled"><a class="page-link"
+                        href="{{ url_for('denuncias_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('denuncias_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% endif %}
+                {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block footer %}
+<script>
+    const btnDelete = document.querySelectorAll('#btn-eliminardenuncia');
+    if (btnDelete) {
+        const btnArray = Array.from(btnDelete);
+        btnArray.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                if (!confirm('¿Esta usted seguro de querer eliminar esta denuncia?')) {
+                    e.preventDefault();
+                }
+            });
+        })
+    }
+</script>
+{% endblock %}
+{% block modal %}
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver el perfil</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="permisosModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Permisos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los permisos</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los roles</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

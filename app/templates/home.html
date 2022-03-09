@@ -1,0 +1,383 @@
+{% extends "layout.html" %}
+
+
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block navbar %}
+
+<div class="d-flex">
+    {% if is_authenticated(session) %}
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i
+                        class="bi bi-person-lines-fill"></i> Perfil</button></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                    Configuración</a></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i
+                        class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i
+                        class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundación</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i
+                        class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+    </div>
+    {% else %}
+    <button type="button" class="btn btn-background" data-bs-toggle="modal" data-bs-target="#inicioSesionModal"><i
+            class="bi bi-box-arrow-in-right"></i>
+        Administrar Sitio
+    </button>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="content-card-home">
+    <div class="card text-center card-wyh bg-transparent">
+        <div class="card-header">
+            <ul class="nav nav-pills mb-3 bg-blacksparent" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-puntosDeEncuentro-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-puntosDeEncuentro" type="button" role="tab"
+                        aria-controls="pills-puntosDeEncuentro" aria-selected="true">Puntos de Encuentro</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-mapaDeInundacion-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-mapaDeInundacion" type="button" role="tab"
+                        aria-controls="pills-mapaDeInundacion" aria-selected="false">Mapa de Inundaciones</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-rutasDeEvacuacion-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-rutasDeEvacuacion" type="button" role="tab"
+                        aria-controls="pills-rutasDeEvacuacion" aria-selected="false">Rutas de Evacuación</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-denuncias-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-denuncias" type="button" role="tab" aria-controls="pills-denuncias"
+                        aria-selected="false">¿Alguna Denuncia?</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+
+            <div class="tab-content card-wyh" id="pills-tabContent">
+                <div class="tab-pane fade show active card-wyh" id="pills-puntosDeEncuentro" role="tabpanel"
+                    aria-labelledby="pills-puntosDeEncuentro-tab">
+                    <div id="map_puntos" class="card-wyh"></div>
+                </div>
+                <div class="tab-pane fade card-wyh" id="pills-mapaDeInundacion" role="tabpanel"
+                    aria-labelledby="pills-mapaDeInundacion-tab">
+                    <div id="map_zonas" class="card-wyh"></div>
+                </div>
+                <div class="tab-pane fade card-wyh" id="pills-rutasDeEvacuacion" role="tabpanel"
+                    aria-labelledby="pills-rutasDeEvacuacion-tab">
+                    <div id="map_recorridos" class="card-wyh"></div>
+                </div>
+                <div class="tab-pane fade card-wyh bg-onlyblacksparent" id="pills-denuncias" role="tabpanel"
+                    aria-labelledby="pills-denuncias-tab">
+                    <div class="row justify-content-center">
+
+                        <div class="col-6 mt-3  mb-3">
+                            <div class="card text-start p-3">
+                                <form action="{{ url_for('denuncia_create') }}" method="POST">
+                                    <!-- Token CSRF-->
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <h3>Sobre la Denuncia</h3>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background" id="titulo"><b>Título</b></span>
+                                        <input type="text" name="titulo" class="form-control input-forms"
+                                            aria-label="Titulo" aria-describedby="titulo">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background"><b>Categoría</b></span>
+                                        <select class="form-select input-forms text-end" name="categoria">
+                                            {% for categoria in categorias %}
+                                            <option value="{{categoria.id}}">{{categoria.nombre}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background"
+                                            id="descripcion"><b>Descripción</b></span>
+                                        <textarea class="form-control input-forms" name="descripcion" id="descripcion"
+                                            rows="1"></textarea>
+                                    </div>
+                                    <h3>Coordenadas</h3>
+                                    <div class="input-group mb-3" hidden>
+                                        <span class="input-group-text bg-background" id="latitud"><b>Lat.</b></span>
+                                        <input type="text" name="latitud" class="form-control input-forms"
+                                            aria-label="Latitud" aria-describedby="latitud" id="lat">
+                                        <span class="input-group-text bg-background" id="longitud"><b>Long.</b></span>
+                                        <input type="text" name="longitud" class="form-control input-forms"
+                                            aria-label="Longitud" aria-describedby="longitud" id="long">
+                                    </div>
+                                    <div id="map_denuncia" class="card-wyha"></div>
+                                    <h3 class="mt-3">Información Personal</h3>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background" id="apellido"><b>Apellido
+                                                Denunciante</b></span>
+                                        <input type="text" name="apellido" class="form-control input-forms"
+                                            aria-label="Apellido" aria-describedby="apellido">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background" id="nombre"><b>Nombre
+                                                Denunciante</b></span>
+                                        <input type="text" name="nombre" class="form-control input-forms"
+                                            aria-label="Nombre" aria-describedby="nombre">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background" id="telcel"><b>Tel/Cel
+                                                Denunciante</b></span>
+                                        <input type="text" name="telcel" class="form-control input-forms"
+                                            aria-label="Telcel" aria-describedby="telcel">
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-background" id="email"><b>Email
+                                                Denunciante</b></span>
+                                        <input type="text" name="email" class="form-control input-forms"
+                                            aria-label="Email" aria-describedby="email">
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-background">Crear Denuncia</button>
+                                        <button type="button" class="btn btn-danger"
+                                            data-bs-dismiss="modal">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+<script>
+    function expandTextarea(id) {
+        document.getElementById(id).addEventListener('keyup', function () {
+            this.style.overflow = 'hidden';
+            this.style.height = 0;
+            this.style.height = this.scrollHeight + 'px';
+        }, false);
+    }
+    expandTextarea('text');
+</script>
+<script>
+    let map_puntos = new L.map('map_puntos').setView([-34.921376, -57.954415], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_puntos);
+    $.ajax({ url: "/api/puntos-encuentro/not-pages", method: "GET" }).then(function (data) {
+        data['puntos_encuentro'].forEach(element => {
+            var marker = L.marker([element['lat'], element['long']]).addTo(map_puntos);
+            marker.bindPopup(element['nombre']);
+        });
+    });
+</script>
+
+<script>
+    let map_denuncia = new L.map('map_denuncia').setView([-34.921376, -57.954415], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_denuncia);
+    var marker;
+    map_denuncia.on("click", function (e) {
+        const lat = document.getElementById('lat');
+        lat.value = e.latlng.lat;
+        const long = document.getElementById('long');
+        long.value = e.latlng.lng;
+        if (marker){
+            marker.remove();
+        }
+        marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map_denuncia);
+    });
+
+</script>
+<script>
+    let map_zonas = new L.map('map_zonas').setView([-34.921376, -57.954415], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_zonas);
+    $.ajax({ url: "/api/zonas-inundables/not-pages", method: "GET" }).then(function (data) {
+        data['zonas'].forEach(element => {
+            coordenadas = element.coordenadas;
+            color_capa = element.color;
+            coords = [];
+            coordenadas.forEach(coordenada => {
+                coord = [];
+                coord.push(parseFloat(coordenada.lat));
+                coord.push(parseFloat(coordenada.long));
+                coords.push(coord);
+            });
+            var polygon = L.polygon(coords).addTo(map_zonas)
+            polygon.bindPopup(element.nombre);
+            polygon.setStyle({ fillColor: color_capa });
+            polygon.setStyle({ color: color_capa });
+        });
+    });
+</script>
+<script>
+    let map_recorridos = new L.map('map_recorridos').setView([-34.921376, -57.954415], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_recorridos);
+    $.ajax({ url: "/api/recorrido-evacuacion/not-pages", method: "GET" }).then(function (data) {
+        data['recorrido_evacuacion'].forEach(element => {
+            coordenadas = element.coordenadas;
+            coords = [];
+            coordenadas.forEach(coordenada => {
+                coord = [];
+                coord.push(parseFloat(coordenada.lat));
+                coord.push(parseFloat(coordenada.long));
+                coords.push(coord);
+            });
+            var polyline = L.polyline(coords).addTo(map_recorridos)
+            polyline.bindPopup(element.nombre);
+        });
+    });
+</script>
+<script>
+    var zonas_pill = document.getElementById('pills-mapaDeInundacion');
+    var observador1 = new MutationObserver(function () {
+        if (zonas_pill.style.display != 'none') {
+            map_zonas.invalidateSize(false);
+        }
+    });
+    observador1.observe(zonas_pill, { attributes: true });
+
+    var denuncias_pill = document.getElementById('pills-denuncias');
+    var observador3 = new MutationObserver(function () {
+        if (denuncias_pill.style.display != 'none') {
+            map_denuncia.invalidateSize(false);
+        }
+    });
+    observador3.observe(denuncias_pill, { attributes: true });
+
+    var recorridos_pill = document.getElementById('pills-rutasDeEvacuacion');
+    var observador2 = new MutationObserver(function () {
+        if (recorridos_pill.style.display != 'none') {
+            map_recorridos.invalidateSize(false);
+        }
+    });
+    observador2.observe(recorridos_pill, { attributes: true });
+</script>
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="inicioSesionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Iniciar Sesión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('auth_authenticate') }}" method="POST">
+                    <!-- Token CSRF-->
+                    <!-- <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/> -->
+                    <input name="email" placeholder="Correo" class="input-style" />
+                    <input type="password" name="password" placeholder="Clave" class="input-style" />
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-background">Iniciar Sesión</button>
+                        <button type="button" class="btn btn-background" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+                <hr>
+                <a class="btn btn-outline-danger" href="{{ url_for('login_google') }}"> <i class="bi bi-google"> Iniciar
+                        Sesión con Google</i></a>
+                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                    data-bs-target="#inicioSesionTwitterModal"> <i class="bi bi-twitter"> Iniciar sesión con
+                        twitter</i></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modals vacios -->
+<div class="modal fade" id="inicioSesionTwitterModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Iniciar Sesión Con Twitter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra iniciar sesión con twitter</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver el perfil</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="permisosModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Permisos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los permisos</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los roles</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

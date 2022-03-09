@@ -1,0 +1,169 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Heebo', sans-serif;
+}
+
+html, body {
+    background-image: var(--image);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+}
+
+.logo {
+    height: 40px;
+    width: 40px;
+}
+
+.text-stl {
+    font-size: 25px;
+}
+
+.content-card-home {
+    width: 100%;
+    height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3% 5% 3% 5%;
+}
+
+.input-style {
+    display: block;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    width: 100%;
+    margin: 20px 0 20px 0 !important;
+    border: none !important;
+    border-bottom: 3px solid var(--main-color) !important;
+    background: transparent !important;
+}
+
+.input-style:focus {
+    outline: none !important;
+}
+
+.card-wyh {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.card-wyha {
+    width: 100% !important;
+    height: 500px !important;
+}
+
+.nav-pills .nav-link.active,
+.show>.nav-pills .nav-link{
+    background: var(--main-color) !important;
+    color: #000000 !important;
+    font-weight: bolder !important;
+}
+
+.nav-link {
+    color: var(--main-color) !important;
+    font-weight: bolder !important;
+}
+
+.smallone {
+    position: relative !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 0 !important;
+    margin-top: 5px !important;
+    width: 25em;
+    color: #000000 !important;
+    font-weight: bolder !important;
+    border: none !important;
+}
+
+.bg-blacksparent {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: var(--main-color);
+}
+
+.bg-onlyblacksparent {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.size-icon {
+    font-size: 35px !important;
+    line-height: 1 !important;
+    color: var(--main-color) !important;
+}
+
+.btn-background, .bg-background {
+    background-color: var(--main-color) !important;
+}
+
+.btn-background {
+    transition: all 0.2s;
+}
+
+.btn-background:hover {
+    background-color: var(--main-color-hover) !important;
+    transition: all 0.2s;
+}
+
+.size-img {
+    width: 150px !important;
+    height: 150px !important;
+    cursor: pointer;
+    transition: all 100ms ease-in;
+    border: 5px solid transparent;
+}
+
+.input-radio {
+    position: absolute;
+    left: -9999px;
+}
+
+.input-radio:active + label>.size-img {
+    border: 5px solid var(--main-color) !important;
+}
+
+.input-radio:checked + label>.size-img {
+    border: 5px solid var(--main-color) !important;
+}
+
+.size-img:hover {
+    border: 5px solid var(--main-color) !important;
+}
+
+.input-forms {
+    border: 2px solid var(--main-color) !important;
+}
+
+.input-forms:focus {
+    box-shadow: none !important;
+}
+
+.input-forms-invalid { 
+    border: 2px solid red !important;
+}
+
+.input-forms-invalid:focus {
+    box-shadow: none !important;
+}
+
+.input-forms-valid {
+    border: 2px solid green !important;
+}
+
+.input-forms-valid {
+    box-shadow: none !important;
+}
+
+.formulario_mensaje_desactivado {
+    display: none;
+}
+
+.mensaje-ayuda-form-desactivado {
+    display: none;
+}
+
+.mensaje-ayuda-form-activado {
+    display: block;
+}

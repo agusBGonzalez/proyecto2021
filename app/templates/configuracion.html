@@ -1,0 +1,338 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+Configuracion
+{% endblock %}
+
+
+{% block navbar %}
+<div class="d-flex">
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i class="bi bi-person-lines-fill"></i> Perfil</button>
+            <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="bi bi-house-fill"></i> Home</a></li>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundación</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+                <li>
+            <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card col mt-5 mb-5 bg-onlyblacksparent">
+        <form action="{{ url_for('configuracion_update') }}" method="POST">
+            <!-- Token CSRF-->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="card-header bg-blacksparent">
+                <h2 class="fw-bolder">Configuración del Sistema</h2>
+            </div>
+            <div class="card-body">
+
+                <div class="row">
+                    <div class="col">
+                        <div class="card m-2">
+                            <div class="card-header">
+                                <h2 class="fw-bolder">Criterio de Ordenación</h2>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background"><b>Usuarios</b></span>
+                                    <select class="form-select input-forms text-end" name="orden_usuarios">
+                                        {% if configuracion.orden_usuarios == 'ascendente' %}
+                                        <option selected value="ascendente">Ascendente (por email)</option>
+                                        <option value="descendente">Descendente (por email)</option>
+                                        {% else %}
+                                        <option selected value="descendente">Descendente (por email)</option>
+                                        <option value="ascendente">Ascendente (por email)</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background"><b>Puntos</b></span>
+                                    <select class="form-select input-forms text-end" name="orden_puntos">
+                                        {% if configuracion.orden_puntos == 'ascendente' %}
+                                        <option selected value="ascendente">Ascendente (por nombre)</option>
+                                        <option value="descendente">Descendente (por nombre)</option>
+                                        {% else %}
+                                        <option selected value="descendente">Descendente (por nombre)</option>
+                                        <option value="ascendente">Ascendente (por nombre)</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background"><b>Zonas</b></span>
+                                    <select class="form-select input-forms text-end" name="orden_zonas">
+                                        {% if configuracion.orden_zonas == 'ascendente' %}
+                                        <option selected value="ascendente">Ascendente (por nombre)</option>
+                                        <option value="descendente">Descendente (por nombre)</option>
+                                        {% else %}
+                                        <option selected value="descendente">Descendente (por nombre)</option>
+                                        <option value="ascendente">Ascendente (por nombre)</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background"><b>Recorridos</b></span>
+                                    <select class="form-select input-forms text-end" name="orden_recorridos">
+                                        {% if configuracion.orden_recorridos == 'ascendente' %}
+                                        <option selected value="ascendente">Ascendente (por nombre)</option>
+                                        <option value="descendente">Descendente (por nombre)</option>
+                                        {% else %}
+                                        <option selected value="descendente">Descendente (por nombre)</option>
+                                        <option value="ascendente">Ascendente (por nombre)</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="card m-2">
+                            <div class="card-header">
+                                <h2 class="fw-bolder">Elementos por Página</h2>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background" id="usuarios"><b>Usuarios</b></span>
+                                    <input type="number" min="1" max="100" name="cantidad_usuarios"
+                                        class="form-control input-forms text-end" aria-label="Usuarios"
+                                        aria-describedby="usuarios" value="{{configuracion.cantidad_usuarios}}"
+                                        required>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background" id="puntos"><b>Puntos</b></span>
+                                    <input type="number" min="1" max="100" name="cantidad_puntos"
+                                        class="form-control input-forms text-end" aria-label="Puntos"
+                                        aria-describedby="puntos" value="{{configuracion.cantidad_puntos}}" required>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background" id="zonas"><b>Zonas</b></span>
+                                    <input type="number" min="1" max="100" name="cantidad_zonas"
+                                        class="form-control input-forms text-end" aria-label="Zonas"
+                                        aria-describedby="zonas" value="{{configuracion.cantidad_zonas}}" required>
+                                </div>
+
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-background" id="recorridos"><b>Recorridos</b></span>
+                                    <input type="number" min="1" max="100" name="cantidad_recorridos"
+                                        class="form-control input-forms text-end" aria-label="Recorridos"
+                                        aria-describedby="recorridos" value="{{configuracion.cantidad_recorridos}}" required>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row d-flex flex-wrap">
+                    <div class="col-lg-6">
+                        <div class="card m-2">
+                            <div class="card-header">
+                                <h2 class="fw-bolder">Temas Públicos</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="row d-flex flex-wrap text-center">
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_publico == 'theme1.css' %}
+                                        <input type="radio" class="input-radio" id="theme1pub" name="tema_publico"
+                                            value="theme1.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme1pub" name="tema_publico"
+                                            value="theme1.css">
+                                        {% endif %}
+                                        <label for="theme1pub">
+                                            <img src="static/capture1.png" class="img-thumbnail size-img" alt="tema 1"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la catedral junto con color lila">
+                                        </label>
+
+                                    </div>
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_publico == 'theme2.css' %}
+                                        <input type="radio" class="input-radio" id="theme2pub" name="tema_publico"
+                                            value="theme2.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme2pub" name="tema_publico"
+                                            value="theme2.css">
+                                        {% endif %}
+                                        <label for="theme2pub">
+                                            <img src="static/capture2.png" class="img-thumbnail size-img" alt="tema 2"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la casa de gobierno junto con color verde">
+                                        </label>
+
+                                    </div>
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_publico == 'theme3.css' %}
+                                        <input type="radio" class="input-radio" id="theme3pub" name="tema_publico"
+                                            value="theme3.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme3pub" name="tema_publico"
+                                            value="theme3.css">
+                                        {% endif %}
+                                        <label for="theme3pub">
+                                            <img src="static/capture3.png" class="img-thumbnail size-img" alt="tema 3"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la ciudad de la plata de noche junto con color amarillo">
+                                        </label>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card m-2">
+                            <div class="card-header">
+                                <h2 class="fw-bolder">Temas Privados</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="row d-flex flex-wrap text-center">
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_privado == 'theme1.css' %}
+                                        <input type="radio" class="input-radio" id="theme1pri" name="tema_privado"
+                                            value="theme1.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme1pri" name="tema_privado"
+                                            value="theme1.css">
+                                        {% endif %}
+                                        <label for="theme1pri">
+                                            <img src="static/capture1.png" class="img-thumbnail size-img" alt="tema 1"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la catedral junto con color lila">
+                                        </label>
+
+                                    </div>
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_privado == 'theme2.css' %}
+                                        <input type="radio" class="input-radio" id="theme2pri" name="tema_privado"
+                                            value="theme2.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme2pri" name="tema_privado"
+                                            value="theme2.css">
+                                        {% endif %}
+                                        <label for="theme2pri">
+                                            <img src="static/capture2.png" class="img-thumbnail size-img" alt="tema 2"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la casa de gobierno junto con color verde">
+                                        </label>
+
+                                    </div>
+                                    <div class="col-sm-4">
+                                        {% if configuracion.tema_privado == 'theme3.css' %}
+                                        <input type="radio" class="input-radio" id="theme3pri" name="tema_privado"
+                                            value="theme3.css" checked>
+                                        {% else %}
+                                        <input type="radio" class="input-radio" id="theme3pri" name="tema_privado"
+                                            value="theme3.css">
+                                        {% endif %}
+                                        <label for="theme3pri">
+                                            <img src="static/capture3.png" class="img-thumbnail size-img" alt="tema 3"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="imagen de la ciudad de la plata de noche junto con color amarillo">
+                                        </label>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button type="submit" class="btn btn-background"><i class="bi bi-bookmark-check"></i> Guardar</button>
+                <a class="btn btn-danger" href="{{ url_for('configuracion_index') }}"><i class="bi bi-x-lg"></i>
+                    Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver el perfil</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="permisosModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Permisos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los permisos</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los roles</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

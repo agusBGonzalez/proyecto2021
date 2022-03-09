@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+Puntos de Encuentro
+{% endblock %}
+
+
+{% block navbar %}
+
+<div class="d-flex">
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i class="bi bi-person-lines-fill"></i> Perfil</button>
+                <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="bi bi-house-fill"></i> Home</a></li>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                    Configuración</a></li>
+                <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+                <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundación</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+                <li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="card col mt-5">
+        <div class="card-header d-flex">
+            <div class="col-8">
+                <h2 class="fw-bolder">Puntos De Encuentro</h2>
+            </div>
+            <div class="col-4 text-end">
+                <a class="btn btn-success m-1" href="{{ url_for('punto_crear') }}">
+                    <i class="bi bi-plus-lg"> Punto</i>
+                </a>
+
+            </div>
+        </div>
+        <div class="card-body">
+
+            <form action="{{ url_for('puntos_index') }}">
+                <div class="input-group">
+                    <select class="form-select form-sm" id="inputGroupSelect01" name="select">
+                        {% if select %}
+                        <option selected>{{ select }}</option>
+                        {% endif %}
+                        <option value="Publicado">Publicado</option>
+                        <option value="Despublicado">Despublicado</option>
+                    </select>
+                    <input type="text" class="form-control" placeholder="Buscar punto de encuentro" name="search"
+                        value="{{ search }}">
+                    <button type="submit" class="btn btn-background"><i class="bi bi-search"></i></button>
+                    <a class="btn btn-info" href="{{ url_for('puntos_index') }}"><i class="bi bi-arrow-repeat"></i></a>
+                </div>
+            </form>
+
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="col-7">Nombre</th>
+                        <th class="col-3">Estado</th>
+                        <th class="col-2 text-end">Operaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for punto in puntos.items %}
+                    <tr>
+                        <td> {{punto.nombre}} </td>
+                        <td>{% if punto.estado %}
+                            Habilitado
+                            {% else %}
+                            Deshabilitado
+                        {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-warning me-1 mb-1" href="{{ url_for('punto_modificar', id=punto.id) }}"><i
+                                    class="bi bi-pencil-fill"></i></button>
+                            {% if check_permission(session, permission="punto_encuentro_destroy") %}
+                            <a id="btn-deletepunto" type="button" class="btn btn-danger me-1 mb-1"
+                                href="{{ url_for('puntos_delete', id=punto.id) }}"><i class="bi bi-trash-fill"></i></a>
+                            {% endif %}
+                            {% if punto.estado %}
+                                <a id="btn-cambiarestado" type="button" class="btn btn-success mb-1"
+                                    href="{{ url_for('puntos_updateEstado', id=punto.id) }}">
+                                    desactivar
+                                </a>
+                                {% else %}
+                                <a id="btn-cambiarestado" type="button" class="btn btn-success mb-1"
+                                    href="{{ url_for('puntos_updateEstado', id=punto.id) }}">
+                                    activar
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-center">
+            <ul class="pagination">
+                {% for page_num in puntos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                {% if puntos.page == page_num %}
+                <li class="page-item disabled"><a class="page-link"
+                        href="{{ url_for('puntos_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% else %}
+                <li class="page-item"><a class="page-link"
+                        href="{{ url_for('puntos_index', page=page_num, search=search, select=select)}}">{{
+                        page_num }}</a></li>
+                {% endif %}
+                {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+<script>
+    const btnDelete = document.querySelectorAll('#btn-deletepunto');
+    if (btnDelete) {
+        const btnArray = Array.from(btnDelete);
+        btnArray.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                if (!confirm('¿Esta usted seguro de querer eliminar este punto de encuentro?')) {
+                    e.preventDefault();
+                }
+            });
+        })
+    }
+</script>
+
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="perfilModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver el perfil</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="permisosModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Permisos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los permisos</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span>En un futuro se podra ver los roles</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

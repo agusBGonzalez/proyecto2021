@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block title %}
+Modificar Punto
+{% endblock %}
+
+{% block navbar %}
+
+<div class="d-flex">
+    {% if is_authenticated(session) %}
+    <div class="btn-group">
+
+        <i class="bi bi-person-square size-icon dropdown" data-bs-toggle="dropdown" data-bs-display="static"
+            aria-expanded="false"></i>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#perfilModal"><i
+                        class="bi bi-person-lines-fill"></i> Perfil</button></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('configuracion_index') }}"><i class="bi bi-gear"></i>
+                    Configuracion</a></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#permisosModal"><i
+                        class="bi bi-x-diamond-fill"></i> Permisos</button></li>
+            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#rolesModal"><i
+                        class="bi bi-ui-checks"></i> Roles</button></li>
+            <li><a class="dropdown-item" href="{{ url_for('user_index') }}" type="button"><i
+                        class="bi bi-people-fill"></i> Usuarios</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            <li><a class="dropdown-item" href="{{ url_for('puntos_index') }}"><i class="bi bi-geo-alt-fill"></i> Puntos
+                    de Encuentro</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('evacuacion_index') }}"><i class="bi bi-pin-map-fill"></i>
+                    Rutas de Evacuación </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('zonas_index') }}"><i class="bi bi-map-fill"></i>
+                    Zonas de Inundacion</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('denuncias_index') }}"><i
+                        class="bi bi-shield-fill-exclamation"></i>
+                    Denuncias</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}"><i class="bi bi-door-open-fill"></i> Cerrar
+                    Sesión</a></li>
+        </ul>
+    </div>
+    {% else %}
+    <button type="button" class="btn btn-background" data-bs-toggle="modal" data-bs-target="#inicioSesionModal"><i
+            class="bi bi-box-arrow-in-right"></i>
+        Administrar Sitio
+    </button>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="card col-lg-6 p-3">
+            <h2>Información del Punto</h2>
+
+            <form action="{{ url_for('puntos_update', id=punto.id) }}" class="text-start" method="POST">
+                <!-- Token CSRF-->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-background" id="nombre"><b>Nombre</b></span>
+                    <input type="text" name="nombre" class="form-control input-forms" aria-label="Nombre"
+                        aria-describedby="nombre" value="{{ punto.nombre }}">
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-background" id="direccion"><b>Dirección</b></span>
+                    <input type="text" name="direccion" class="form-control input-forms" aria-label="Direccion"
+                        aria-describedby="direccion" value="{{ punto.direccion }}">
+                </div>
+
+                <div class="input-group mb-3" hidden>
+                    <span class="input-group-text bg-background" id="latitud"><b>Latitud</b></span>
+                    <input type="text" name="latitud" class="form-control input-forms" aria-label="Latitud"
+                        aria-describedby="latitud" id="lat" value="{{ punto.lat }}">
+                </div>
+
+                <div class="input-group mb-3" hidden>
+                    <span class="input-group-text bg-background" id="longitud"><b>Longitud</b></span>
+                    <input type="text" name="longitud" class="form-control input-forms" aria-label="Longitud"
+                        aria-describedby="longitud" id="long" value="{{ punto.long }}">
+                </div>
+
+                <div id="map_punto" class="card-wyha mb-3"></div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-background" id="telefono"><b>Teléfono</b></span>
+                    <input type="text" name="telefono" class="form-control input-forms" aria-label="Telefono"
+                        aria-describedby="telefono" value="{{ punto.telefono }}">
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-background" id="email"><b>Email</b></span>
+                    <input type="text" name="email" class="form-control input-forms" aria-label="Email"
+                        aria-describedby="email" value="{{ punto.email }}">
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-background">Editar</button>
+                    <a class="btn btn-danger" href="{{ url_for('puntos_index') }}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<script>
+    const lat_vieja = document.getElementById('lat');
+    const long_vieja = document.getElementById('long');
+    let map_punto = new L.map('map_punto').setView([lat_vieja.value, long_vieja.value], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map_punto);
+    var marker = L.marker([lat_vieja.value, long_vieja.value]).addTo(map_punto);
+    map_punto.on("click", function (e) {
+        const lat = document.getElementById('lat');
+        lat.value = e.latlng.lat;
+        const long = document.getElementById('long');
+        long.value = e.latlng.lng;
+        if (marker) {
+            marker.remove();
+        }
+        marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map_punto);
+    });
+
+</script>
+{% endblock %}
